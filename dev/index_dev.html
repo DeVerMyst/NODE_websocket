@@ -1,0 +1,78 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Communication Temps Réel</title>
+</head>
+
+<body>
+  <h1>Bonjour</h1>
+  <div id="message-container"></div>
+
+  <button onclick="connectToServer()">Connexion au serveur</button>
+  <button onclick="disconnectFromServer()">Déconnexion du serveur</button>
+  <button onclick="startReading()">Démarrer la lecture</button>
+  <button onclick="stopReading()">Arrêter la lecture</button>
+
+  <script>
+    const messageContainer = document.getElementById('message-container');
+    const ws = new WebSocket('ws://localhost:3000');
+    let readingInterval;
+
+    // Ajouter une écoute pour la réponse du serveur une seule fois
+    ws.onmessage = (event) => {
+      console.log('Réception du message du serveur (raw):', event.data);
+
+      try {
+        const data = JSON.parse(event.data);
+        console.log('Parsed data:', data);
+
+        // Utiliser JSON.stringify pour afficher l'objet JSON directement
+        var tmp = JSON.stringify(data, null, 2);        
+
+        // Vérifier si 'message' est défini dans l'objet JSON
+        if (data.numbers !== undefined) {
+          // Faire quelque chose avec data.message si nécessaire
+          console.log('Le message existe :', data.numbers);
+          messageContainer.innerText = `La liste de nombres aléatoires est : ${data.numbers.join(', ')}`;
+        }
+      } catch (error) {
+        console.error('Erreur lors de la parse du JSON:', error);
+      }
+
+    };
+
+    function connectToServer() {
+      console.log('Demande de connexion au serveur');
+      ws.send(JSON.stringify({ action: 'connect' }));
+    }
+
+    function disconnectFromServer() {
+      console.log('Demande de déconnexion du serveur');
+      ws.send(JSON.stringify({ action: 'disconnect' }));
+    }
+
+    function startReading() {
+      console.log('Demande de démarrer la lecture');
+      ws.send(JSON.stringify({ action: 'startReading' }));
+    }
+
+    function stopReading() {
+      console.log('Demande d\'arrêter la lecture');
+      ws.send(JSON.stringify({ action: 'stopReading' }));
+    }
+
+    ws.onopen = () => {
+      console.log('Connexion au serveur établie');
+    };
+
+    ws.onclose = () => {
+      console.log('Connexion au serveur fermée');
+    };
+  </script>
+</body>
+
+</html>
